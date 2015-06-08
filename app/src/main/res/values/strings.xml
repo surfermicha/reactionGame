@@ -2,4 +2,14 @@
     <string name="app_name">ReactionGame</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_game">GameActivity</string>
+    <string name="question">Which number is the smallest?</string>
+    <string name="smNumber_Answer4">Answer4</string>
+    <string name="smNumber_Answer3">Answer3</string>
+    <string name="smNumber_Answer2">Answer2</string>
+    <string name="smNumber_Answer1">Answer1</string>
+    <string name="smNumber_GameFinished">Game Over!</string>
+    <string name="smNumber_GameFinished_Timeout">Time was running out. You lost!</string>
+    <string name="smNumber_GameFinished_AnswerCorrect">Great! You\'ve got it!</string>
+    <string name="smNumber_GameFinished_AnswerWrong">That\'s wrong. You lose!</string>
 </resources>
