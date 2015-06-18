@@ -12,36 +12,48 @@ import org.ksoap2.transport.HttpTransportSE;
 import java.util.List;
 
 import GameServer.GameSmallestNumber;
+import GameServer.SessionData;
 
 /**
- * Created by Michael on 19.05.2015.
+ * This is the Stub to communicate with the Wildfly server via SOAP.
+ * Note: This methods are time intensive. Pay Attention that you call them async.
+ * Note: In development mode change the IP in in the URL constant to the IP of the wildfly server in your local network
+ * @author Michael Landreh
  */
 public class OnlineServiceClient {
 
     //Constants
     public static final String NAMESPACE = "http://ServiceInterface.reactiongame.sive.de/";
-    public static final String URL = "http://10.0.2.2:8080/reactiongame/ReactiongameServiceBeanService";
-    private static String TAG = OnlineServiceClient.class.getName();
+    public static final String URL = "http://192.168.0.15:8080/reactiongame/ReactiongameServiceBean";
+    private static final int LOGIN_FAILED_PASSWORD_CODE = 40;
+    private static final int LOGIN_FAILED_EMAIL_CODE = 41;
+    private static final int LOGIN_FAILED_ERROR_CODE = 80;
+    private static final int OK_CODE = 0;
+    private static String TAG = OnlineServiceClient.class.getName(); //Log-Tag
 
     //Class variables
     private int sessionId;
 
-    public GameSmallestNumber createGame(String[] answers) throws NoGameException {
+    /*
+    This method requests a GameSmallestNumber from the server
+    @return GameSmallestNumber The recieved game from server
+     */
+    public GameSmallestNumber createGame() throws NoGameException {
         Log.d(TAG, "createGame was called...");
         String METHOD_NAME = "createGame";
         try {
             SoapObject response = executeSoapAction(METHOD_NAME);
             Log.d(TAG, response.toString());
-            /*//Get answers
+            //Get answers
             String[] answers = new String[4];
-            for(int i = 0; i< 3; i++)
+            for(int i = 0; i<=3; i++)
             {
-                answers[i] = response.getPropertyAsString(i);
-            }*/
+                answers[i] = response.getPropertyAsString(i+2);
+            }
             //Get game duration
             int gameDuration = Integer.parseInt(response.getProperty("gameDurationInMilliseconds").toString());
             //Get the index of the correct answer
-            int correctAnswerIndex = Integer.parseInt(response.getProperty("gameDurationInMilliseconds").toString());
+            int correctAnswerIndex = Integer.parseInt(response.getProperty("correctAnswerIndex").toString());
             //Return the recieved smallest number game
             return new GameSmallestNumber(answers, correctAnswerIndex, gameDuration);
 
@@ -53,19 +65,83 @@ public class OnlineServiceClient {
 
     }
 
-    public String setGameResult(int playerNumber, boolean isWinner) throws NoGameException {
+    /*
+     * This method pushes the result of GameSmallestNumber to the server
+     * @param   int playerNumber
+     */
+    public int setGameResult(int playerNumber, int selectedAnswerIndex, boolean isWinner) throws ResultNotPushedException {
         Log.d(TAG, "setGameResult was called...");
         String METHOD_NAME = "setGameResult";
         try {
-            SoapObject response = executeSoapAction(METHOD_NAME, playerNumber, isWinner);
+            SoapObject response = executeSoapAction(METHOD_NAME, playerNumber, selectedAnswerIndex, isWinner);
             Log.d(TAG, response.toString());
 
             //Return the response message
-            return response.getProperty("message").toString();
+            return Integer.parseInt(response.getProperty("returnCode").toString());
 
         } catch (SoapFault e) {
-            throw new NoGameException(e.getMessage());
+            throw new ResultNotPushedException(e.getMessage());
         }
+    }
+
+    /**
+     * This method sends the user credentials to the server and receives a token to access the server
+     * @param email The users e-mail-address
+     * @param password The users password
+     */
+    public SessionData loginUser(String email, String password) throws InvalidLoginException {
+        Log.d(TAG, "loginUser was called...");
+        String METHOD_NAME = "loginUser";
+        try {
+            SoapObject response = executeSoapAction(METHOD_NAME, email, password);
+            Log.d(TAG, response.toString());
+
+            switch (Integer.parseInt(response.getProperty("returnCode").toString())) {
+                case LOGIN_FAILED_EMAIL_CODE:
+                    throw new InvalidLoginException("Login failed caused by wrong e-mail", LOGIN_FAILED_EMAIL_CODE);
+                case LOGIN_FAILED_PASSWORD_CODE:
+                    throw new InvalidLoginException("Login failed caused by wrong password", LOGIN_FAILED_PASSWORD_CODE);
+                default:
+                    break;
+            }
+
+            String mEmail = response.getPropertyAsString("email");
+            String mFirstname = response.getPropertyAsString("firstname");
+            String mLastname = response.getPropertyAsString("lastname");
+            int mSessionId = Integer.parseInt(response.getPropertyAsString("sessionId"));
+            return new SessionData(mSessionId, mEmail, mFirstname, mLastname);
+        } catch (SoapFault e) {
+            throw new InvalidLoginException(e.getMessage(),LOGIN_FAILED_ERROR_CODE);
+        } catch (InvalidLoginException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidLoginException("Technical error: " + e.getMessage(), LOGIN_FAILED_ERROR_CODE);
+        }
+    }
+
+
+    public SessionData createUser(String email, String password, String firstname, String lastname) throws UserAlreadyExistsException {
+        Log.d(TAG, "createUser was called...");
+        String METHOD_NAME = "createUser";
+        try {
+            SoapObject response = executeSoapAction(METHOD_NAME, email, password, firstname, lastname);
+            Log.d(TAG, response.toString());
+
+            //Check whether the response is null
+            if (Integer.parseInt(response.getProperty("returnCode").toString()) != OK_CODE) {
+                throw new UserAlreadyExistsException("The user already exists");
+            }
+
+            String mEmail = response.getPropertyAsString("email");
+            String mFirstname = response.getPropertyAsString("firstname");
+            String mLastname = response.getPropertyAsString("lastname");
+            int mSessionId = Integer.parseInt(response.getPropertyAsString("sessionId"));
+            return new SessionData(mSessionId, mEmail, mFirstname, mLastname);
+        } catch (SoapFault e) {
+            Log.w(TAG, "SoapFault: " + e.getMessage());
+
+        }
+        return null;
     }
 
     private SoapObject executeSoapAction(String methodName, Object... args) throws SoapFault {

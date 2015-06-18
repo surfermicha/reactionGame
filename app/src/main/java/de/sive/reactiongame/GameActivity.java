@@ -21,22 +21,24 @@ import android.widget.Toast;
 import GameServer.GameSmallestNumber;
 import de.sive.reactiongame.onlineClient.NoGameException;
 import de.sive.reactiongame.onlineClient.OnlineServiceClient;
-import de.sive.reactiongame.tasks.CreateGameTask;
+import de.sive.reactiongame.onlineClient.ResultNotPushedException;
+
 
 
 public class GameActivity extends ActionBarActivity {
     //Constants
-    private static final String TAG = "GameActivity"; //Log-Tag
+    private static final String TAG = GameActivity.class.getName(); //Log-Tag
 
-    //Class variables
-    GameServer.GameSmallestNumber thisGame;
-    CountDownTimer gameTimer;
-    boolean isGameTimerCanceled = false;
-    Button btnAnswer1;
-    Button btnAnswer2;
-    Button btnAnswer3;
-    Button btnAnswer4;
-    TextView txtCountDown;
+    //instance variables
+    private GameServer.GameSmallestNumber thisGame;
+    private CountDownTimer gameTimer;
+    private boolean isGameTimerCanceled = false;
+    private Button btnAnswer1;
+    private Button btnAnswer2;
+    private Button btnAnswer3;
+    private Button btnAnswer4;
+    private TextView txtCountDown;
+    private int selectedAnswerIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,20 +82,14 @@ public class GameActivity extends ActionBarActivity {
         btnAnswer4 = (Button) findViewById(R.id.button_answer4);
         txtCountDown = (TextView) findViewById(R.id.txtCountDown);
 
-
-        //TODO: Receive Data from server async
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        //if (networkInfo != null && networkInfo.isConnected()) {
-        Log.d(TAG, "Started to download game data...");
-
-        CreateGameTask createGameTask = new CreateGameTask(this);
-        createGameTask.execute();
-
-        //} else {
-        //    Toast.makeText(this,"No internet connection available", Toast.LENGTH_LONG).show();
-        //    Log.w(TAG, "Loading game was canceled because of a missing internet connection.");
-        //}
+        // Recieve game data async from server if internet connection is available
+        if (isInternetAvailable()) {
+            Log.d(TAG, "Started to download game data...");
+            CreateGameTask createGameTask = new CreateGameTask(this);
+            createGameTask.execute();
+        } else {
+            Toast.makeText(this, "No internet connection available", Toast.LENGTH_LONG).show();
+        }
 
 
     }
@@ -135,15 +131,19 @@ public class GameActivity extends ActionBarActivity {
         switch (view.getId()) {
             case R.id.button_answer1:
                 pressedButton = btnAnswer1;
+                selectedAnswerIndex = 0;
                 break;
             case R.id.button_answer2:
                 pressedButton = btnAnswer2;
+                selectedAnswerIndex = 1;
                 break;
             case R.id.button_answer3:
                 pressedButton = btnAnswer3;
+                selectedAnswerIndex = 2;
                 break;
             case R.id.button_answer4:
                 pressedButton = btnAnswer4;
+                selectedAnswerIndex = 3;
                 break;
             default:
                 pressedButton = null;
@@ -164,38 +164,63 @@ public class GameActivity extends ActionBarActivity {
      */
     private void finishGame(Button pressedButton) {
         //Disable answer buttons
-        btnAnswer1.setEnabled(false);
-        btnAnswer2.setEnabled(false);
-        btnAnswer3.setEnabled(false);
-        btnAnswer4.setEnabled(false);
+        setUIEnabled(false);
 
         //Mark correct answer
         getCorrectAnswerButton().setTextColor(Color.GREEN);
 
         //Checks whether the user has clicked a button
+        GameResult gameResult = null;
         if (pressedButton != null) {
             //Button-Click
             if (pressedButton == getCorrectAnswerButton()) {
+                //Answer is correct
                 Log.d(TAG, "The user's answer is correct.");
                 txtCountDown.setText(R.string.smNumber_GameFinished_AnswerCorrect);
+                gameResult = new GameResult(1, selectedAnswerIndex, true);
+
             } else {
+                //Answer is incorrect
                 Log.d(TAG, "The user's answer is wrong.");
                 pressedButton.setTextColor(Color.RED);
                 txtCountDown.setText(getString(R.string.smNumber_GameFinished_AnswerWrong));
+                gameResult = new GameResult(1, selectedAnswerIndex, false);
             }
         } else {
             //Game-Timeout
             txtCountDown.setText(getString(R.string.smNumber_GameFinished_Timeout));
+            gameResult = new GameResult(1, selectedAnswerIndex, false);
             Log.d(TAG, "Time is running out and the user has no answer chosen.");
 
         }
-        //TODO: Report result to the server async
+
         Log.d(TAG, "The game was finished and the answers were checked.");
+
+        //Push the game result to the server
+        if (isInternetAvailable()) {
+            Log.d(TAG, "Start to push the game result to the server.");
+            SetGameResultTask setGameResultTask = new SetGameResultTask(this);
+            setGameResultTask.execute(gameResult);
+        } else {
+            Toast.makeText(this, "No internet connection available", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    /*
+    (de-)activates the answerbuttons
+    @param  setEnabled  Set it to false to deactivate the answer buttons.
+     */
+    private void setUIEnabled(boolean setEnabled) {
+        btnAnswer1.setEnabled(setEnabled);
+        btnAnswer2.setEnabled(setEnabled);
+        btnAnswer3.setEnabled(setEnabled);
+        btnAnswer4.setEnabled(setEnabled);
     }
 
     /*
     This method returns a reference to the button that represents the correct answer
-    @return The button object that represents the correct answer
+    @return Button The button object that represents the correct answer
     @author Michael Landreh
      */
     private Button getCorrectAnswerButton() {
@@ -213,9 +238,25 @@ public class GameActivity extends ActionBarActivity {
         }
     }
 
+    /*
+    This method checks whether the internet is available or not.
+    @return boolean True if internet is available
+     */
+    private boolean isInternetAvailable() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        } else {
+            Log.w(TAG, "Loading game was canceled because of a missing internet connection.");
+            return false;
+        }
+    }
+
 
     /**
-     * Created by Michael on 23.05.2015.
+     * This is the background task to get a smallest number game from the server
+     * @author Michael Landreh
      */
     public class CreateGameTask extends AsyncTask<String, Integer, GameSmallestNumber> {
 
@@ -235,10 +276,9 @@ public class GameActivity extends ActionBarActivity {
 
         protected GameSmallestNumber doInBackground(String... params) {
             OnlineServiceClient remote = new OnlineServiceClient();
-            String[] testanswers = {"1", "2", "3", "4"};
             GameSmallestNumber game = null;
             try {
-                game = remote.createGame(testanswers);
+                game = remote.createGame();
             } catch (NoGameException e) {
                 cancel(true);
                 Log.e(TAG, "The game couldn't be loaded from server. Error Message: " + e.getMessage());
@@ -247,10 +287,6 @@ public class GameActivity extends ActionBarActivity {
             }
 
             return game;
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-
         }
 
         protected void onPostExecute(GameSmallestNumber game) {
@@ -266,10 +302,8 @@ public class GameActivity extends ActionBarActivity {
 
             } else {
                 thisGame = game;
-                Toast.makeText(context, "The game was successfully loaded.", Toast.LENGTH_LONG).show();
                 Log.d(TAG, "Game was recieved. Setting up UI...");
                 //Fills the button texts with the answers that are recieved from the server
-                //thisGame = new GameSmallestNumber();
                 btnAnswer1.setText(thisGame.getAnswers()[0]);
                 btnAnswer2.setText(thisGame.getAnswers()[1]);
                 btnAnswer3.setText(thisGame.getAnswers()[2]);
@@ -292,4 +326,75 @@ public class GameActivity extends ActionBarActivity {
         }
 
     }
+
+    /*
+     This is the background task to push the game result to the server.
+     @author Michael Landreh
+     */
+    public class SetGameResultTask extends AsyncTask<GameResult, Integer, Integer> {
+
+        private static final String TAG = "SetGameResultTask";
+        private ProgressDialog dialog;
+        private Context context;
+
+        public SetGameResultTask(Activity thisActivity) {
+            dialog = new ProgressDialog(thisActivity);
+            context = thisActivity.getApplicationContext();
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Sending result...");
+            dialog.show();
+        }
+
+        protected Integer doInBackground(GameResult... gameResult) {
+            OnlineServiceClient remote = new OnlineServiceClient();
+            int responseCode = -1;
+            try {
+                responseCode = remote.setGameResult(gameResult[0].getPlayerNumber(), gameResult[0].getSelectedAnswer(), gameResult[0].isWinnner());
+                if (responseCode == -1) {
+                    Log.w(TAG, "The returned responseCode is not valid.");
+                    throw new ResultNotPushedException("The returned responseCode is not valid.");
+                }
+
+            } catch (ResultNotPushedException e) {
+                cancel(true);
+                Log.e(TAG, "The game result couldn't be pushed to server. Error Message: " + e.getMessage());
+            } catch (Exception e) {
+                cancel(true);
+                Log.e(TAG, "The game result couldn't be pushed to server. Error Message: " + e.getMessage());
+            }
+
+            return responseCode;
+        }
+
+
+        protected void onPostExecute(Integer responseCode) {
+            //Dismiss the ProgressDialog if it's showing
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+
+            //Check whether the result ist was successfully pushed to the server
+            if (responseCode == 0) {
+                Toast.makeText(context, "Result was successfully pushed to the server.", Toast.LENGTH_LONG).show();
+                Log.d(TAG, "Result was successfully pushed to the server.");
+            } else {
+                Toast.makeText(context, "Failed to push the result to the server.", Toast.LENGTH_LONG).show();
+                Log.w(TAG, "Failed to push the result to the server. Fehlercode: " + responseCode);
+            }
+
+        }
+
+        protected void onCancelled() {
+            //Dismiss the ProgressDialog if it's showing
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            Toast.makeText(context, "The game result couldn't be pushed to the server.", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "Async setGameResultTask was cancelled.");
+
+        }
+    }
+
 }

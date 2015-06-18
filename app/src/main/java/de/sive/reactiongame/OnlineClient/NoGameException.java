@@ -1,7 +1,8 @@
 package de.sive.reactiongame.onlineClient;
 
 /**
- * Created by Michael on 23.05.2015.
+ * This Exception is thrown is the server request to get a game fails.
+ * @author Michael Landreh
  */
 public class NoGameException extends Exception {
     public NoGameException(String message) {

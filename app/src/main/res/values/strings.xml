@@ -12,4 +12,13 @@
     <string name="smNumber_GameFinished_Timeout">Time was running out. You lost!</string>
     <string name="smNumber_GameFinished_AnswerCorrect">Great! You\'ve got it!</string>
     <string name="smNumber_GameFinished_AnswerWrong">That\'s wrong. You lose!</string>
+    <string name="action_sign_up_short">Sign up</string>
+    <string name="error_invalid_password_confirmation">Password confirmation has to match the password</string>
+    <string name="title_activity_registration">Registration</string>
+    <string name="title_activity_main">Reactiongame</string>
+
+    <string name="title_section1">Profil</string>
+    <string name="title_section2">My games</string>
+    <string name="title_section3">Highscores</string>
+    <string name="games_empty_list">You haven\'t any current game started.</string>
 </resources>
