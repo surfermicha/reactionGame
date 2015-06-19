@@ -5,7 +5,8 @@ import android.content.Context;
 import de.sive.reactiongame.PrefUtils;
 
 /**
- * Created by Michael on 13.06.2015.
+ * This class saves Session data to the SharedPreferences
+ * @author Michael Landreh
  */
 public class SessionDataUtils {
 

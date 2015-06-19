@@ -144,6 +144,30 @@ public class OnlineServiceClient {
         return null;
     }
 
+    /**
+     * This method returns true or false depending on whether the given sessionId is available or not
+     * @return boolean Returns true if the given session ID is available
+     */
+    public boolean isSessionAvailable(int sessionId) throws Exception{
+        Log.d(TAG, "isSessionAvailable was called...");
+        String METHOD_NAME = "isSessionAvailable";
+        try {
+            SoapObject response = executeSoapAction(METHOD_NAME, sessionId);
+            Log.d(TAG, response.toString());
+
+            //Check whether the response is null
+            if (Integer.parseInt(response.getProperty("returnCode").toString()) != OK_CODE) {
+                throw new Exception("Couldn't find server session status.");
+            }
+
+
+            return (boolean) response.getProperty("isSessionAvailable");
+        } catch (SoapFault e) {
+            Log.w(TAG, "SoapFault: " + e.getMessage());
+            return false;
+        }
+    }
+
     private SoapObject executeSoapAction(String methodName, Object... args) throws SoapFault {
 
         Object result = null;
@@ -199,4 +223,6 @@ public class OnlineServiceClient {
 
         return (SoapObject) result;
     }
+
+
 }

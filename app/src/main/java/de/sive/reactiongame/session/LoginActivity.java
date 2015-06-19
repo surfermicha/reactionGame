@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import GameServer.SessionData;
 import de.sive.reactiongame.R;
+import de.sive.reactiongame.mainActivity.MainActivity;
 import de.sive.reactiongame.onlineClient.InvalidLoginException;
 import de.sive.reactiongame.onlineClient.OnlineServiceClient;
 
@@ -324,9 +325,11 @@ public class LoginActivity extends ActionBarActivity implements LoaderCallbacks<
 
             switch (statusCode) {
                 case OK_CODE:
-                    //TODO: Redirect to Main activity
                     Log.d(TAG, "Login was successful!");
                     Toast.makeText(context, "Login was successful!", Toast.LENGTH_LONG).show();
+                    //Redirect to MainActivity
+                    Intent intent = new Intent(context, MainActivity.class);
+                    startActivity(intent);
                     break;
                 case LOGIN_FAILED_EMAIL_CODE:
                     mEmailView.setError(getString(R.string.error_incorrect_email));

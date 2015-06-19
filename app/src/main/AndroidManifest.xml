@@ -23,7 +23,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".GameActivity"
-            android:label="@string/title_activity_game"></activity>
+            android:label="@string/title_activity_game" />
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -33,15 +33,17 @@
             android:name=".session.LoginActivity"
             android:label="@string/title_activity_login"
             android:windowSoftInputMode="adjustResize|stateVisible">
-
         </activity>
         <activity
             android:name=".session.RegistrationActivity"
             android:label="@string/title_activity_registration"
-            android:windowSoftInputMode="adjustResize|stateVisible"></activity>
+            android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
             android:name=".mainActivity.MainActivity"
-            android:label="@string/title_activity_main">
+            android:label="@string/title_activity_main"></activity>
+        <activity
+            android:name=".SplashScreenActivity"
+            android:label="@string/title_activity_splash_screen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

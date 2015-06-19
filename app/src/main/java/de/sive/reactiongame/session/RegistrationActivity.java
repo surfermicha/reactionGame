@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 import GameServer.SessionData;
 import de.sive.reactiongame.R;
+import de.sive.reactiongame.mainActivity.MainActivity;
 import de.sive.reactiongame.onlineClient.OnlineServiceClient;
 import de.sive.reactiongame.onlineClient.UserAlreadyExistsException;
 
@@ -376,7 +377,9 @@ public class RegistrationActivity extends ActionBarActivity implements LoaderCal
                 case OK_CODE:
                     Log.d(TAG, "Registration was successful!");
                     Toast.makeText(context, "Registration was successful! You are now logged in.", Toast.LENGTH_LONG).show();
-                    //TODO: Redirect to main activity
+                    //Redirect to MainActivity
+                    Intent intent = new Intent(context, MainActivity.class);
+                    startActivity(intent);
                     break;
                 case REGISTRATION_USER_ALREADY_EXISTS_CODE:
                     mEmailView.setError("A user with this email address already exists");
