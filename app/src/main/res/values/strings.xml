@@ -23,4 +23,5 @@
     <string name="games_empty_list">You haven\'t any current game started.</string>
     <string name="title_activity_splash_screen">SplashScreenActivity</string>
     <string name="reactiongame_logo_description">logo of reactiongame</string>
+    <string name="button_log_out">Log out</string>
 </resources>

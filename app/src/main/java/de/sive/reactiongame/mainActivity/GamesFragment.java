@@ -70,10 +70,6 @@ public class GamesFragment extends Fragment implements AbsListView.OnItemClickLi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            sectionNumber = getArguments().getString(ARG_SECTION_NUMBER);
-        }
-
 
         // TODO: Change Adapter to display your content
         mAdapterDummy = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),

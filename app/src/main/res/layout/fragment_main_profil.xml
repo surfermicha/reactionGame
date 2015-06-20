@@ -2,16 +2,46 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#ff8400">
+    android:orientation="vertical">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_log_out"
+        android:id="@+id/buttonLogOutView"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="39dp"
+        android:background="@color/accent" />
 
     <TextView
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="User Profil"
-        android:textSize="20dp"
-        android:layout_centerInParent="true" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="first and last name"
+        android:id="@+id/nameView"
+        android:layout_marginTop="176dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="e-mail"
+        android:id="@+id/emailView"
+        android:layout_below="@+id/nameView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="You are not [user name]?"
+        android:id="@+id/NotTheRightUserView"
+        android:layout_above="@+id/buttonLogOutView"
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

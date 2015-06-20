@@ -25,10 +25,6 @@
             android:name=".GameActivity"
             android:label="@string/title_activity_game" />
 
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-
         <activity
             android:name=".session.LoginActivity"
             android:label="@string/title_activity_login"
@@ -43,7 +39,8 @@
             android:label="@string/title_activity_main"></activity>
         <activity
             android:name=".SplashScreenActivity"
-            android:label="@string/title_activity_splash_screen">
+            android:label="@string/title_activity_splash_screen"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

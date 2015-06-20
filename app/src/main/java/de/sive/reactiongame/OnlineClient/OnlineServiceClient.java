@@ -145,6 +145,12 @@ public class OnlineServiceClient {
     }
 
     /**
+     * Use this method to log out the current user
+     * @param sessionId The stored sessionid.
+     * @return
+     */
+
+    /**
      * This method returns true or false depending on whether the given sessionId is available or not
      * @return boolean Returns true if the given session ID is available
      */
@@ -159,9 +165,7 @@ public class OnlineServiceClient {
             if (Integer.parseInt(response.getProperty("returnCode").toString()) != OK_CODE) {
                 throw new Exception("Couldn't find server session status.");
             }
-
-
-            return (boolean) response.getProperty("isSessionAvailable");
+            return Boolean.parseBoolean(response.getPropertyAsString("sessionValid"));
         } catch (SoapFault e) {
             Log.w(TAG, "SoapFault: " + e.getMessage());
             return false;

@@ -19,7 +19,6 @@ public class SplashScreenActivity extends Activity {
     private static final String TAG = SplashScreenActivity.class.getName();
 
     private SessionStatusTask mSessionStatusTask = null;
-    private boolean mServerSessionValid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,25 +27,32 @@ public class SplashScreenActivity extends Activity {
 
         //Get Session key
         int sessionId = PrefUtils.getFromPrefs(getApplicationContext(), PrefUtils.PREFS_SESSION_ID_KEY, SESSION_NOT_FOUND_CODE);
+        Log.d(TAG, "Session ID from prefs is: " + sessionId);
         if (sessionId == SESSION_NOT_FOUND_CODE) {
+            Log.d(TAG, "session not found in prefs.");
             //No session available. The User is redirected to login page
             Intent intent = new Intent(this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(intent);
         }
 
         //Start Async Task to check wether the stored session ID is valid.
         mSessionStatusTask = new SessionStatusTask(this, sessionId);
         mSessionStatusTask.execute();
+    }
 
-        if (mServerSessionValid) {
+    private void checkServerSessionResponse(boolean serverResponse) {
+        Log.d(TAG, "serverresponse is: " + serverResponse);
+        if (serverResponse) {
+            Log.d(TAG, "User still has a valid session. Skip Login...");
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         } else {
+            Log.d(TAG, "Server answer: session is not valid.");
             Intent intent = new Intent(this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(intent);
         }
-
-
     }
 
     @Override
@@ -71,31 +77,41 @@ public class SplashScreenActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class SessionStatusTask extends AsyncTask<Void, Void, Void> {
+    public class SessionStatusTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final int mSessionId = SESSION_NOT_FOUND_CODE;
+        private int mSessionId = SESSION_NOT_FOUND_CODE;
         private Context context;
 
         SessionStatusTask(Activity thisActivity, int sessionId) {
             context = thisActivity.getApplicationContext();
-
+            mSessionId = sessionId;
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Boolean doInBackground(Void... params) {
             OnlineServiceClient remote = new OnlineServiceClient();
             try {
-                // Ask server whether a user session with the saved sessin ID is available
+                // Ask server whether a user session with the saved session ID is available
+                Log.d(TAG, "Check whether session ID is valid... sessionId: " + mSessionId);
                 boolean serverSessionAvailable = remote.isSessionAvailable(mSessionId);
                 if (serverSessionAvailable) {
-                    mServerSessionValid = true;
+                    return true;
                 }
             } catch (Exception e) {
                 Log.w(TAG, e.getMessage());
-                mServerSessionValid = false;
+                return false;
             }
-            mServerSessionValid = false;
-            return null;
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            checkServerSessionResponse(result);
+        }
+
+        @Override
+        protected void onCancelled(Boolean result) {
+            checkServerSessionResponse(result);
         }
 
 

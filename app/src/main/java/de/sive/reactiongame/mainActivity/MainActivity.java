@@ -74,6 +74,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
+
+        //Set the second tab as start tab
+        actionBar.setSelectedNavigationItem(1);
     }
 
 
