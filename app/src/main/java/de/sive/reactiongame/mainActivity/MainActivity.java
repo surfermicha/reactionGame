@@ -2,6 +2,11 @@ package de.sive.reactiongame.mainActivity;
 
 import java.util.Locale;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -10,19 +15,27 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import de.sive.reactiongame.PrefUtils;
 import de.sive.reactiongame.R;
+import de.sive.reactiongame.SplashScreenActivity;
+import de.sive.reactiongame.onlineClient.OnlineServiceClient;
+import de.sive.reactiongame.session.SessionDataUtils;
 
 
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, GamesFragment.OnFragmentInteractionListener {
 
+
+    private static final String TAG = MainActivity.class.getName(); //Log-Tag
+    private static final int SESSION_NOT_FOUND_CODE = -1;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -122,6 +135,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     @Override
     public void onGameItemSelected(String id) {
         // TODO Open an activity displaying the  match with the given id
+    }
+
+    public void logoutUser(View view) {
+        Log.d(TAG, "Logout clicked...");
+        UserLogoutTask mTask = new UserLogoutTask(this, PrefUtils.getFromPrefs(getApplicationContext(), PrefUtils.PREFS_SESSION_ID_KEY, SESSION_NOT_FOUND_CODE));
+        mTask.execute();
     }
 
     /**
@@ -268,6 +287,58 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             mNotTheRightUserView.setText("Aren't you " + firstname + "?");
             mNameView.setText("Hello, " + firstname + " " + lastname + "!");
             mEmailView.setText(email);
+        }
+    }
+
+    public class UserLogoutTask extends AsyncTask<Void, Void, Boolean> {
+        private ProgressDialog dialog;
+        private int mSessionId = -1;
+        private Context context;
+
+        UserLogoutTask(Activity thisActivity, int sessionId) {
+            context = thisActivity.getApplicationContext();
+            mSessionId = sessionId;
+            dialog = new ProgressDialog(thisActivity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Log out...");
+            dialog.show();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            OnlineServiceClient remote = new OnlineServiceClient();
+
+
+            // Try to logout
+            return remote.logoutUser(mSessionId);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean success) {
+            //Dismiss the ProgressDialog if it's showing
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            //Delete user data and session id to SharedPreferences if logout was successful and navigat to start screen
+            if (success) {
+                SessionDataUtils.deleteSessionData(context);
+                Toast.makeText(context, "You are logged out successfully", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(context, SplashScreenActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                startActivity(intent);
+            }
+
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            //Dismiss the ProgressDialog if it's showing
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
         }
     }
 

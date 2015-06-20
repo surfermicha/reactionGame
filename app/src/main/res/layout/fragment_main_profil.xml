@@ -12,7 +12,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="39dp"
-        android:background="@color/accent" />
+        android:background="@color/accent"
+        android:onClick="logoutUser" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -17,4 +17,12 @@ public class SessionDataUtils {
         PrefUtils.saveToPrefs(context, PrefUtils.PREFS_FIRSTNAME_KEY, firstname);
         PrefUtils.saveToPrefs(context, PrefUtils.PREFS_LASTNAME_KEY, lastname);
     }
+
+    public static void deleteSessionData(Context context) {
+
+        PrefUtils.removeFromPrefs(context, PrefUtils.PREFS_SESSION_ID_KEY);
+        PrefUtils.removeFromPrefs(context, PrefUtils.PREFS_EMAIL_KEY);
+        PrefUtils.removeFromPrefs(context, PrefUtils.PREFS_FIRSTNAME_KEY);
+        PrefUtils.removeFromPrefs(context, PrefUtils.PREFS_LASTNAME_KEY);
+    }
 }

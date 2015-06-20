@@ -145,6 +145,31 @@ public class OnlineServiceClient {
     }
 
     /**
+     *
+     */
+    public boolean logoutUser(int sessionId) {
+        Log.d(TAG, "logoutUser was called...");
+        String METHOD_NAME = "logout";
+        try {
+            SoapObject response = executeSoapAction(METHOD_NAME, sessionId);
+            Log.d(TAG, response.toString());
+
+            //Check whether the response code is null
+            if (Integer.parseInt(response.getProperty("returnCode").toString()) != OK_CODE) {
+                throw new LogoutFailException("Couldn't logout User");
+            } else {
+                return true;
+            }
+        } catch (SoapFault e) {
+            Log.w(TAG, "SoapFault: " + e.getMessage());
+            return false;
+        } catch (LogoutFailException e) {
+            Log.w(TAG, "LogoutFail: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Use this method to log out the current user
      * @param sessionId The stored sessionid.
      * @return
@@ -161,7 +186,7 @@ public class OnlineServiceClient {
             SoapObject response = executeSoapAction(METHOD_NAME, sessionId);
             Log.d(TAG, response.toString());
 
-            //Check whether the response is null
+            //Check whether the response code is null
             if (Integer.parseInt(response.getProperty("returnCode").toString()) != OK_CODE) {
                 throw new Exception("Couldn't find server session status.");
             }

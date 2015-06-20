@@ -73,12 +73,19 @@ public class PrefUtils {
      * @return Return the value found against given key, default if not found or any error occurs
      */
     public static int getFromPrefs(Context context, String key, int defaultValue) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         try {
-            return sharedPrefs.getInt(key, defaultValue);
+            return prefs.getInt(key, defaultValue);
         } catch (Exception e) {
             e.printStackTrace();
             return defaultValue;
         }
+    }
+
+    public static void removeFromPrefs(Context context, String key) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(key);
+        editor.apply();
     }
 }

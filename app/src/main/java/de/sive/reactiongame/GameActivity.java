@@ -269,11 +269,13 @@ public class GameActivity extends ActionBarActivity {
             context = thisActivity.getApplicationContext();
         }
 
+        @Override
         protected void onPreExecute() {
             dialog.setMessage("Loading Questions...");
             dialog.show();
         }
 
+        @Override
         protected GameSmallestNumber doInBackground(String... params) {
             OnlineServiceClient remote = new OnlineServiceClient();
             GameSmallestNumber game = null;
@@ -289,6 +291,7 @@ public class GameActivity extends ActionBarActivity {
             return game;
         }
 
+        @Override
         protected void onPostExecute(GameSmallestNumber game) {
             //Dismiss the ProgressDialog if it's showing
             if (dialog.isShowing()) {
@@ -315,6 +318,7 @@ public class GameActivity extends ActionBarActivity {
 
         }
 
+        @Override
         protected void onCancelled() {
             //Dismiss the ProgressDialog if it's showing
             if (dialog.isShowing()) {
