@@ -15,7 +15,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import de.sive.reactiongame.PrefUtils;
 import de.sive.reactiongame.R;
 
 
@@ -219,6 +221,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
+        private TextView mNameView;
+        private TextView mEmailView;
+        private TextView mNotTheRightUserView;
+
         /**
          * Returns a new instance of this fragment for the given section
          * number.
@@ -235,10 +241,33 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
 
         @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main_profil, container, false);
             return rootView;
+        }
+
+        @Override
+        public void onViewCreated(View view, Bundle savedInstanceState) {
+            //Get Views of profilfragment
+            mNameView = (TextView) getView().findViewById(R.id.nameView);
+            mEmailView = (TextView) getView().findViewById(R.id.emailView);
+            mNotTheRightUserView = (TextView) getView().findViewById(R.id.notTheRightUserView);
+
+            //Get user info from shared preferences
+            String firstname = PrefUtils.getFromPrefs(getActivity().getApplicationContext(), PrefUtils.PREFS_FIRSTNAME_KEY, "first name");
+            String lastname = PrefUtils.getFromPrefs(getActivity().getApplicationContext(), PrefUtils.PREFS_LASTNAME_KEY, "last name");
+            String email = PrefUtils.getFromPrefs(getActivity().getApplicationContext(), PrefUtils.PREFS_EMAIL_KEY, "e-mail");
+
+            //Show user info in profil fragment
+            mNotTheRightUserView.setText("Aren't you " + firstname + "?");
+            mNameView.setText("Hello, " + firstname + " " + lastname + "!");
+            mEmailView.setText(email);
         }
     }
 
